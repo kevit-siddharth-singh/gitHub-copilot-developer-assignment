@@ -37,6 +37,14 @@ build/
 
 ## 2. Agent Mode Prompts
 
+1. Prompt - ```
+   /create-agent Create two different agents for frontend and backend for creating a simple task manger in vanilla Frontend (html , css and js )and Backend (node.js and express )
+
+```
+Files Generated - .github/backend.agent.md , .github/frontend.agent.md
+
+
+
 ## 3. Sub-Agent Usage
 
 ## 4. Review Agent
