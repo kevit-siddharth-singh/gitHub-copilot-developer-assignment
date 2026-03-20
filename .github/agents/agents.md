@@ -22,6 +22,7 @@ Business rules:
 - Return `404` if task not found
 - Return `422` for invalid status/priority
 - Persist tasks to a local file (`tasks.json` or equivalent)
+- API response envelope for all endpoints: `{ "success": bool, "data": ... }`
 
 ### Frontend (HTML/CSS/JS)
 

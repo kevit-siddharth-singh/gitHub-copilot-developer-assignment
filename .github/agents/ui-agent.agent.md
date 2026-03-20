@@ -1,5 +1,5 @@
 ---
-name: frontend
+name: frontend agent
 description: "Frontend agent for the Task Manager app. Use when: building UI components, styling pages, writing client-side JavaScript, handling DOM manipulation, modal forms, task table rendering, status/priority badges, filters, live search, loading states, toast notifications, HTML structure, CSS layout, vanilla JS interactivity. Do NOT use for: backend routes, Express middleware, database logic, server-side code."
 ---
 
@@ -60,6 +60,7 @@ Frontend code must respect backend schema:
 - `priority`: `low | medium | high`
 - `createdAt` and `updatedAt`: ISO timestamps
 
+Read all API responses using envelope format: `{ "success": bool, "data": ... }`.
 When API returns `400`, `404`, or `422`, show readable user feedback via toasts.
 
 ## Coding Conventions

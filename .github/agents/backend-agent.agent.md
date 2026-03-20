@@ -1,5 +1,5 @@
 ---
-name: backend
+name: backend agent
 description: "Backend agent for the Task Manager app. Use when: creating Express routes, REST API endpoints, middleware setup, CORS configuration, file-based data storage, server-side logic, request validation, UUID generation, title/status/priority constraints, workflow validation, Node.js server code. Do NOT use for: HTML templates, CSS styling, client-side JavaScript, DOM manipulation, frontend UI."
 ---
 
@@ -68,7 +68,8 @@ You are a backend developer specializing in building RESTful APIs using **Node.j
 - Validate title, status, priority, and status transitions at the route level before processing.
 - Initialize defaults when creating a task: `status: "todo"`, `priority: "medium"` if not provided.
 - Set `createdAt` at creation and refresh `updatedAt` on every update.
-- Return consistent JSON responses: `{ message: "..." }` for errors, task object(s) for success.
+- Return envelope JSON on every endpoint: `{ "success": bool, "data": ... }`.
+- For errors, use envelope format with message in data, for example: `{ "success": false, "data": { "message": "..." } }`.
 
 ## Tool Preferences
 
