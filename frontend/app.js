@@ -202,6 +202,7 @@ function renderTasks() {
 			<td><span class="badge priority-${task.priority}">${escapeHtml(task.priority)}</span></td>
 			<td><span class="badge status-${task.status}">${escapeHtml(task.status)}</span></td>
 			<td>${formatDate(task.createdAt)}</td>
+			<td>${formatDate(task.updatedAt)}</td>
 			<td>
 				<div class="row-actions">
 					<button class="btn btn-ghost" data-action="edit" data-id="${task.id}" type="button"><span class="btn-icon" aria-hidden="true">&#9998;</span><span>Edit</span></button>

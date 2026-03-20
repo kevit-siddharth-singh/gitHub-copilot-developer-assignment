@@ -42,7 +42,7 @@ body {
 
 /* ── Container ── */
 .container {
-	width: min(1140px, 95vw);
+	width: min(1340px, 95vw);
 	margin: 2.5rem auto;
 	background: var(--surface);
 	border: 1px solid var(--line);

@@ -176,7 +176,7 @@ state - update it to more accurately represent the intended action.
 
 ---
 
-### @backend-agent
+### Backend-agent.agent.md
 
 **Prompt**:
 
@@ -197,7 +197,7 @@ export app via module.exports for testing, wrap app.listen in require.main guard
 
 ---
 
-### @testing-agent
+### Testing-agent.agent.md
 
 **Prompt**:
 
