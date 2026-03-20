@@ -1,0 +1,15 @@
+# Generate a gitignore file for a Node.js project
+
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*     
+
+node_modules/
+dist/
+build/
+.DS_Store
+.env
+.idea/
+.vscode/
