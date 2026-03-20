@@ -5,8 +5,8 @@ const state = {
 	search: "",
 	statusFilter: "all",
 	priorityFilter: "all",
-	sortBy: "createdAt",
-	sortOrder: "desc",
+	sortBy: null,
+	sortOrder: null,
 	loading: false,
 	editingTaskId: null,
 };
@@ -25,8 +25,7 @@ const refs = {
 	searchInput: document.getElementById("search-input"),
 	statusFilter: document.getElementById("status-filter"),
 	priorityFilter: document.getElementById("priority-filter"),
-	sortBy: document.getElementById("sort-by"),
-	sortOrder: document.getElementById("sort-order"),
+	tableHead: document.querySelector(".task-table thead"),
 	openModalBtn: document.getElementById("open-modal-btn"),
 	cancelModalBtn: document.getElementById("cancel-modal-btn"),
 	toastContainer: document.getElementById("toast-container"),
@@ -99,6 +98,8 @@ function getFilteredTasks() {
 }
 
 function sortTasks(tasks) {
+	if (!state.sortBy || !state.sortOrder) return tasks;
+
 	const direction = state.sortOrder === "asc" ? 1 : -1;
 
 	return [...tasks].sort((a, b) => {
@@ -160,7 +161,25 @@ function getAdvanceMeta(status) {
 	};
 }
 
+function updateSortIcons() {
+	refs.tableHead.querySelectorAll("th.sortable").forEach((th) => {
+		const icon = th.querySelector(".sort-icon");
+		const col = th.dataset.sort;
+		th.classList.remove("sort-asc", "sort-desc");
+		if (col === state.sortBy && state.sortOrder === "asc") {
+			th.classList.add("sort-asc");
+			icon.innerHTML = "&#9650;"; // ▲
+		} else if (col === state.sortBy && state.sortOrder === "desc") {
+			th.classList.add("sort-desc");
+			icon.innerHTML = "&#9660;"; // ▼
+		} else {
+			icon.innerHTML = "&#8693;"; // ⇕
+		}
+	});
+}
+
 function renderTasks() {
+	updateSortIcons();
 	const filteredTasks = sortTasks(getFilteredTasks());
 	refs.body.innerHTML = "";
 
@@ -203,6 +222,14 @@ function openModal(task = null) {
 	refs.descriptionInput.value = task?.description || "";
 	refs.priorityInput.value = task?.priority || "medium";
 	refs.statusInput.value = task?.status || "todo";
+
+	const statusGroup = document.getElementById("status-group");
+	if (task) {
+		statusGroup.style.display = "";
+	} else {
+		statusGroup.style.display = "none";
+	}
+
 	refs.modal.classList.remove("hidden");
 }
 
@@ -226,7 +253,13 @@ function resetViewFilters() {
 async function loadTasks() {
 	try {
 		setLoading(true);
-		const tasks = await fetchApi(API_BASE);
+		// Build query params for server-side filtering
+		const params = new URLSearchParams();
+		if (state.statusFilter !== "all") params.set("status", state.statusFilter);
+		if (state.priorityFilter !== "all") params.set("priority", state.priorityFilter);
+		const qs = params.toString();
+		const url = qs ? `${API_BASE}?${qs}` : API_BASE;
+		const tasks = await fetchApi(url);
 		state.tasks = Array.isArray(tasks) ? tasks : [];
 		renderTasks();
 	} catch (error) {
@@ -234,6 +267,10 @@ async function loadTasks() {
 	} finally {
 		setLoading(false);
 	}
+}
+
+async function fetchTaskById(id) {
+	return fetchApi(`${API_BASE}/${id}`);
 }
 
 async function createTask(payload) {
@@ -260,6 +297,14 @@ async function deleteTask(id) {
 	renderTasks();
 }
 
+async function completeTask(id) {
+	const updated = await fetchApi(`${API_BASE}/${id}/complete`, {
+		method: "POST",
+	});
+	state.tasks = state.tasks.map((task) => (task.id === id ? updated : task));
+	renderTasks();
+}
+
 refs.openModalBtn.addEventListener("click", () => openModal());
 refs.cancelModalBtn.addEventListener("click", closeModal);
 
@@ -276,21 +321,29 @@ refs.searchInput.addEventListener("input", (event) => {
 
 refs.statusFilter.addEventListener("change", (event) => {
 	state.statusFilter = event.target.value;
-	renderTasks();
+	loadTasks();
 });
 
 refs.priorityFilter.addEventListener("change", (event) => {
 	state.priorityFilter = event.target.value;
-	renderTasks();
+	loadTasks();
 });
 
-refs.sortBy.addEventListener("change", (event) => {
-	state.sortBy = event.target.value;
-	renderTasks();
-});
-
-refs.sortOrder.addEventListener("change", (event) => {
-	state.sortOrder = event.target.value;
+refs.tableHead.addEventListener("click", (event) => {
+	const th = event.target.closest("th.sortable");
+	if (!th) return;
+	const col = th.dataset.sort;
+	if (state.sortBy === col) {
+		if (state.sortOrder === "asc") {
+			state.sortOrder = "desc";
+		} else if (state.sortOrder === "desc") {
+			state.sortBy = null;
+			state.sortOrder = null;
+		}
+	} else {
+		state.sortBy = col;
+		state.sortOrder = "asc";
+	}
 	renderTasks();
 });
 
@@ -337,7 +390,9 @@ refs.body.addEventListener("click", async (event) => {
 	try {
 		setLoading(true);
 		if (action === "edit") {
-			openModal(task);
+			// Fetch fresh task data from server by ID
+			const freshTask = await fetchTaskById(id);
+			openModal(freshTask);
 			return;
 		}
 
@@ -353,14 +408,10 @@ refs.body.addEventListener("click", async (event) => {
 				return;
 			}
 
-			const payload = {
-				title: task.title,
-				description: task.description || "",
-				priority: task.priority,
-				status: button.dataset.nextStatus || getNextStatus(task.status),
-			};
-			await updateTask(id, payload);
-			showToast(`Task moved to ${payload.status}`, "success");
+			// Use the dedicated /complete endpoint
+			await completeTask(id);
+			const nextStatus = task.status === "todo" ? "in-progress" : "done";
+			showToast(`Task moved to ${nextStatus}`, "success");
 		}
 	} catch (error) {
 		showToast(error.message || "Action failed");

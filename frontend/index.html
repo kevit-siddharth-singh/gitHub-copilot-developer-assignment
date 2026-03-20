@@ -42,22 +42,6 @@
                     <option value="low">Low</option>
                 </select>
             </div>
-            <div class="control-group">
-                <label for="sort-by">Sort By</label>
-                <select id="sort-by" class="control-select" aria-label="Sort tasks by field">
-                    <option value="createdAt">Created Date</option>
-                    <option value="title">Name</option>
-                    <option value="priority">Priority</option>
-                    <option value="status">Status</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label for="sort-order">Order</label>
-                <select id="sort-order" class="control-select" aria-label="Sort order">
-                    <option value="desc">Descending</option>
-                    <option value="asc">Ascending</option>
-                </select>
-            </div>
         </section>
 
         <section id="loading-indicator" class="loading hidden" aria-live="polite">Loading tasks...</section>
@@ -66,10 +50,10 @@
             <table class="task-table">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Priority</th>
-                        <th>Status</th>
-                        <th>Created</th>
+                        <th class="sortable" data-sort="title">Title <span class="sort-icon">&#8693;</span></th>
+                        <th class="sortable" data-sort="priority">Priority <span class="sort-icon">&#8693;</span></th>
+                        <th class="sortable" data-sort="status">Status <span class="sort-icon">&#8693;</span></th>
+                        <th class="sortable" data-sort="createdAt">Created <span class="sort-icon">&#8693;</span></th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -96,12 +80,14 @@
                     <option value="high">High</option>
                 </select>
 
-                <label for="task-status">Status</label>
-                <select id="task-status" name="status" required>
-                    <option value="todo" selected>Todo</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="done">Done</option>
-                </select>
+                <div id="status-group">
+                    <label for="task-status">Status</label>
+                    <select id="task-status" name="status" required>
+                        <option value="todo" selected>Todo</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
 
                 <div class="modal-actions">
                     <button type="button" id="cancel-modal-btn" class="btn btn-ghost">Cancel</button>

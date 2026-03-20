@@ -199,3 +199,74 @@ test.describe("Edit Task", () => {
 		await expect(page.locator("#task-table-body .task-title")).toHaveText("Updated Title");
 	});
 });
+
+test.describe("Column Header Sorting", () => {
+	test("should toggle sort icons and reorder rows on header click", async ({ page }) => {
+		await page.goto("/");
+
+		// Create two tasks with different titles
+		await page.click("#open-modal-btn");
+		await page.fill("#task-title", "Banana Task");
+		await page.click('#task-form button[type="submit"]');
+		await expect(page.locator("#task-table-body tr")).toHaveCount(1);
+
+		await page.click("#open-modal-btn");
+		await page.fill("#task-title", "Apple Task");
+		await page.click('#task-form button[type="submit"]');
+		await expect(page.locator("#task-table-body tr")).toHaveCount(2);
+
+		// Click Title header — should sort ascending
+		const titleHeader = page.locator('th[data-sort="title"]');
+		await titleHeader.click();
+		await expect(titleHeader).toHaveClass(/sort-asc/);
+		const firstRowAsc = page.locator("#task-table-body tr").first().locator(".task-title");
+		await expect(firstRowAsc).toHaveText("Apple Task");
+
+		// Click again — should sort descending
+		await titleHeader.click();
+		await expect(titleHeader).toHaveClass(/sort-desc/);
+		const firstRowDesc = page.locator("#task-table-body tr").first().locator(".task-title");
+		await expect(firstRowDesc).toHaveText("Banana Task");
+
+		// Click again — should reset to default (no sort class)
+		await titleHeader.click();
+		await expect(titleHeader).not.toHaveClass(/sort-asc/);
+		await expect(titleHeader).not.toHaveClass(/sort-desc/);
+	});
+});
+
+test.describe("Filter by Status (Server-Side)", () => {
+	test("should filter tasks by status via the backend", async ({ page }) => {
+		await page.goto("/");
+
+		// Create a task (starts as todo)
+		await page.click("#open-modal-btn");
+		await page.fill("#task-title", "Status Task");
+		await page.click('#task-form button[type="submit"]');
+		await expect(page.locator("#task-table-body tr")).toHaveCount(1);
+
+		// Advance to in-progress
+		await page.click('button[data-action="advance"]');
+		await expect(page.locator("#task-table-body .status-in-progress")).toBeVisible();
+
+		// Create another task (stays as todo)
+		await page.click("#open-modal-btn");
+		await page.fill("#task-title", "Todo Task");
+		await page.click('#task-form button[type="submit"]');
+		await expect(page.locator("#task-table-body tr")).toHaveCount(2);
+
+		// Filter by in-progress
+		await page.selectOption("#status-filter", "in-progress");
+		await expect(page.locator("#task-table-body tr")).toHaveCount(1);
+		await expect(page.locator("#task-table-body .task-title")).toHaveText("Status Task");
+
+		// Filter by todo
+		await page.selectOption("#status-filter", "todo");
+		await expect(page.locator("#task-table-body tr")).toHaveCount(1);
+		await expect(page.locator("#task-table-body .task-title")).toHaveText("Todo Task");
+
+		// Reset — show all
+		await page.selectOption("#status-filter", "all");
+		await expect(page.locator("#task-table-body tr")).toHaveCount(2);
+	});
+});

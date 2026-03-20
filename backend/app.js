@@ -85,12 +85,71 @@ function canTransition(currentStatus, nextStatus) {
 	return nextIndex >= currentIndex && nextIndex - currentIndex <= 1;
 }
 
-app.get("/api/tasks", async (_req, res) => {
+/**
+ * GET /api/tasks - List all tasks with optional server-side filtering.
+ * Supports ?status= and ?priority= query parameters.
+ */
+app.get("/api/tasks", async (req, res) => {
 	try {
-		const tasks = await readTasks();
+		let tasks = await readTasks();
+
+		const { status, priority } = req.query;
+		if (status && VALID_STATUS.includes(status)) {
+			tasks = tasks.filter((t) => t.status === status);
+		} else if (status) {
+			return res.status(422).json(envelopeError("Invalid status filter"));
+		}
+		if (priority && VALID_PRIORITY.includes(priority)) {
+			tasks = tasks.filter((t) => t.priority === priority);
+		} else if (priority) {
+			return res.status(422).json(envelopeError("Invalid priority filter"));
+		}
+
 		res.json(envelopeSuccess(tasks));
 	} catch (error) {
 		res.status(500).json(envelopeError("Failed to read tasks"));
+	}
+});
+
+/**
+ * GET /api/tasks/stats - Return task counts grouped by status and priority.
+ */
+app.get("/api/tasks/stats", async (_req, res) => {
+	try {
+		const tasks = await readTasks();
+		const byStatus = {};
+		const byPriority = {};
+
+		VALID_STATUS.forEach((s) => (byStatus[s] = 0));
+		VALID_PRIORITY.forEach((p) => (byPriority[p] = 0));
+
+		tasks.forEach((t) => {
+			if (byStatus[t.status] !== undefined) byStatus[t.status]++;
+			if (byPriority[t.priority] !== undefined) byPriority[t.priority]++;
+		});
+
+		res.json(envelopeSuccess({ total: tasks.length, byStatus, byPriority }));
+	} catch (error) {
+		res.status(500).json(envelopeError("Failed to get stats"));
+	}
+});
+
+/**
+ * GET /api/tasks/:id - Get a single task by ID.
+ */
+app.get("/api/tasks/:id", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const tasks = await readTasks();
+		const task = tasks.find((t) => t.id === id);
+
+		if (!task) {
+			return res.status(404).json(envelopeError("Task not found"));
+		}
+
+		res.json(envelopeSuccess(task));
+	} catch (error) {
+		res.status(500).json(envelopeError("Failed to get task"));
 	}
 });
 
@@ -195,6 +254,44 @@ app.delete("/api/tasks/:id", async (req, res) => {
 		return res.json(envelopeSuccess({ message: "Task deleted" }));
 	} catch (error) {
 		return res.status(500).json(envelopeError("Failed to delete task"));
+	}
+});
+
+/**
+ * POST /api/tasks/:id/complete - Mark a task as done.
+ * Enforces the status workflow: advances one step at a time to 'done'.
+ */
+app.post("/api/tasks/:id/complete", async (req, res) => {
+	try {
+		const { id } = req.params;
+		const tasks = await readTasks();
+		const taskIndex = tasks.findIndex((task) => task.id === id);
+
+		if (taskIndex === -1) {
+			return res.status(404).json(envelopeError("Task not found"));
+		}
+
+		const currentTask = tasks[taskIndex];
+
+		if (currentTask.status === "done") {
+			return res.status(422).json(envelopeError("Task is already completed"));
+		}
+
+		// Advance one step: todo -> in-progress, in-progress -> done
+		const nextStatus = currentTask.status === "todo" ? "in-progress" : "done";
+
+		const updatedTask = {
+			...currentTask,
+			status: nextStatus,
+			updatedAt: new Date().toISOString(),
+		};
+
+		tasks[taskIndex] = updatedTask;
+		await writeTasks(tasks);
+
+		return res.json(envelopeSuccess(updatedTask));
+	} catch (error) {
+		return res.status(500).json(envelopeError("Failed to complete task"));
 	}
 });
 
