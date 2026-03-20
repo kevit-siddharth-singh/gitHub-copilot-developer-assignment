@@ -13,3 +13,7 @@ build/
 .env
 .idea/
 .vscode/
+coverage/
+__tests__
+.playwright-mcp/
+.last-run.json

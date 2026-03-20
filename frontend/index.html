@@ -4,16 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Task Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Create Task Manager UI -->
-    <h1>Task Manager</h1>
-    <form id="task-form">
-        <input type="text" id="task-title" placeholder="Task Title" required>
-        <input type="text" id="task-description" placeholder="Task Description" required>
-        <button type="submit">Add Task</button> 
-    </form>
-    <ul id="task-list"></ul>
-    
+    <main class="container">
+        <header class="header">
+            <div>
+                <h1>Task Manager</h1>
+                <p class="subtitle">Track work with status, priority, and quick actions.</p>
+            </div>
+            <button id="open-modal-btn" class="btn btn-primary" type="button">&#43; Add Task</button>
+        </header>
+
+        <section class="controls" aria-label="Task filters and sorting">
+            <div class="control-group control-group-wide">
+                <label for="search-input">Search</label>
+                <input id="search-input" class="control-input" type="search" placeholder="Search tasks..." aria-label="Search tasks">
+            </div>
+            <div class="control-group">
+                <label for="status-filter">Status</label>
+                <select id="status-filter" class="control-select" aria-label="Filter by status">
+                    <option value="all">All Statuses</option>
+                    <option value="todo">Todo</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="priority-filter">Priority</label>
+                <select id="priority-filter" class="control-select" aria-label="Filter by priority">
+                    <option value="all">All Priorities</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="sort-by">Sort By</label>
+                <select id="sort-by" class="control-select" aria-label="Sort tasks by field">
+                    <option value="createdAt">Created Date</option>
+                    <option value="title">Name</option>
+                    <option value="priority">Priority</option>
+                    <option value="status">Status</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="sort-order">Order</label>
+                <select id="sort-order" class="control-select" aria-label="Sort order">
+                    <option value="desc">Descending</option>
+                    <option value="asc">Ascending</option>
+                </select>
+            </div>
+        </section>
+
+        <section id="loading-indicator" class="loading hidden" aria-live="polite">Loading tasks...</section>
+
+        <section class="table-wrap">
+            <table class="task-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="task-table-body"></tbody>
+            </table>
+            <p id="empty-state" class="empty-state hidden">No tasks match your filters.</p>
+        </section>
+    </main>
+
+    <div id="task-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-panel">
+            <h2 id="modal-title">Add Task</h2>
+            <form id="task-form" class="task-form">
+                <label for="task-title">Title</label>
+                <input id="task-title" name="title" type="text" minlength="1" maxlength="200" required>
+
+                <label for="task-description">Description</label>
+                <textarea id="task-description" name="description" rows="3"></textarea>
+
+                <label for="task-priority">Priority</label>
+                <select id="task-priority" name="priority" required>
+                    <option value="low">Low</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="high">High</option>
+                </select>
+
+                <label for="task-status">Status</label>
+                <select id="task-status" name="status" required>
+                    <option value="todo" selected>Todo</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+
+                <div class="modal-actions">
+                    <button type="button" id="cancel-modal-btn" class="btn btn-ghost">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast-container" class="toast-container" aria-live="assertive" aria-atomic="true"></div>
+
+    <script src="app.js" defer></script>
 </body>
 </html>

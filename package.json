@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-    
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "cd backend && npm test",
+    "test:e2e": "npx playwright test"
   },
   "repository": {
     "type": "git",
@@ -14,5 +15,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
 }
